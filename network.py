@@ -32,14 +32,19 @@ class Activation_Softmax:
 
 # Create dataset
 X, y = spiral_data(samples=100, classes=3)
-# Create Dense layer with 2 input features and 3 output values
+# Create Layers and Activations
 dense1 = Layer_Dense (2, 3)
-# Create ReLU activation (to be used with Dense layer):
 activation1 = Activation_ReLU()
-# Make a forward pass of our training data through this layer
+dense2 = Layer_Dense(3, 3)
+activation2 = Activation_Softmax()
+
+# Pass the infroamtion and Normalize
 dense1.forward(X)
-# Forward pass through activation func.
-# Takes in output from previous layer
 activation1.forward(dense1.output)
- # Let's see output of the first few samples:
-print(activation1.output[:5])
+dense2.forward(activation1.output)
+activation2.forward(dense2.output)
+
+#print the result
+print(activation2.output[:5])
+
+
