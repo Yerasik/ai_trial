@@ -1,8 +1,9 @@
 import numpy as np
 from nnfs.datasets import spiral_data
-import random
-import matplotlib.pyplot as plt
 import nnfs
+
+
+nnfs.init()
 
 # ReLU activation
 class Activation_ReLU:
@@ -34,12 +35,12 @@ class Loss:
     # Calculates the data and regularization losses
     # given model output and ground truth values
     def calculate (self, output, y):
-    # Calculate sample losses
-    sample_losses = self.forward(output, y)
-    # Calculate mean loss
-    data_loss = np. mean (sample_losses)
-    # Return loss
-    return data_loss
+        # Calculate sample losses
+        sample_losses = self.forward(output, y)
+        # Calculate mean loss
+        data_loss = np. mean (sample_losses)
+        # Return loss
+        return data_loss
 
 # Cross-entropy loss
 class Loss_CategoricalCrossentropy(Loss):
@@ -69,8 +70,8 @@ class Loss_CategoricalCrossentropy(Loss):
             )
 
         # Losses
-        negative log likelihoods = -np.log(correct confidences)
-        return negative log likelihoods
+        negative_log_likelihoods = -np.log(correct_confidences)
+        return negative_log_likelihoods
 
 # Create dataset
 X, y = spiral_data(samples=100, classes=3)
@@ -79,6 +80,7 @@ dense1 = Layer_Dense (2, 3)
 activation1 = Activation_ReLU()
 dense2 = Layer_Dense(3, 3)
 activation2 = Activation_Softmax()
+loss_function = Loss_CategoricalCrossentropy()
 
 # Pass the infroamtion and Normalize
 dense1.forward(X)
@@ -87,9 +89,8 @@ dense2.forward(activation1.output)
 activation2.forward(dense2.output)
 
 #print the result of the loss
-
-loss_function = Loss_CategoricalCrossentropy
-loss = loss_function.calculate (softmax_outputs, class_targets)
+loss = loss_function.calculate (activation2.output, y)
+print(activation2.output[:5])
 print (loss)
 
 
