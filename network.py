@@ -73,24 +73,38 @@ class Loss_CategoricalCrossentropy(Loss):
         negative_log_likelihoods = -np.log(correct_confidences)
         return negative_log_likelihoods
 
-# Create dataset
-X, y = spiral_data(samples=100, classes=3)
-# Create Layers and Activations
-dense1 = Layer_Dense (2, 3)
-activation1 = Activation_ReLU()
-dense2 = Layer_Dense(3, 3)
-activation2 = Activation_Softmax()
-loss_function = Loss_CategoricalCrossentropy()
+# # Create dataset
+# X, y = spiral_data(samples=100, classes=3)
+# # Create Layers and Activations
+# dense1 = Layer_Dense (2, 3)
+# activation1 = Activation_ReLU()
+# dense2 = Layer_Dense(3, 3)
+# activation2 = Activation_Softmax()
+# loss_function = Loss_CategoricalCrossentropy()
 
-# Pass the infroamtion and Normalize
-dense1.forward(X)
-activation1.forward(dense1.output)
-dense2.forward(activation1.output)
-activation2.forward(dense2.output)
+# # Pass the infroamtion and Normalize
+# dense1.forward(X)
+# activation1.forward(dense1.output)
+# dense2.forward(activation1.output)
+# activation2.forward(dense2.output)
 
-#print the result of the loss
-loss = loss_function.calculate (activation2.output, y)
-print(activation2.output[:5])
-print (loss)
+# #print the result of the loss
+# loss = loss_function.calculate (activation2.output, y)
+# print(activation2.output[:5])
+# print (loss)
 
+# Probabilities of 3 samples
+softmax_outputs = np.array([[0.7, 0.2, 0.1],
+[0.5, 0.1, 0.4],
+[0.02, 0.9, 0.08]])
+# Target (ground-truth) labels for 3 samples
+class_targets = np.array ([0, 1, 1])
+# Calculate values along second axis (axis of index 1)
+predictions = np.argmax (softmax_outputs, axis=1)
+# If targets are one-hot encoded - convert them
+if len(class_targets.shape) == 2:
+    class_targets = np.argmax (class_targets, axis=1)
+# True evaluates to 1; False to 0
+accuracy = np.mean (predictions==class_targets)
+print ('accuracy:', accuracy)
 
