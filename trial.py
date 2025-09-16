@@ -90,12 +90,12 @@ best_dense1_biases = dense1.biases.copy()
 best_dense2_weights = dense2.weights.copy ()
 best_dense2_biases = dense2.biases.copy()
 
-for iteration in range (1000):
+for iteration in range (10000):
     # Generate a new set of weights for iteration
-    dense1.weights = 0.05 * np.random.randn (2, 3)
-    dense1.biases = 0.05 * np.random. rand(1, 3)
-    dense2.weights = 0.05 * np.random.randn(3, 3)
-    dense2.biases = 0.05 * np.random.randn(1, 3)
+    dense1.weights += 0.05 * np.random.randn (2, 3)
+    dense1.biases += 0.05 * np.random. rand(1, 3)
+    dense2.weights += 0.05 * np.random.randn(3, 3)
+    dense2.biases += 0.05 * np.random.randn(1, 3)
     # Perform a forward pass of the training data through this layer
     dense1.forward (X)
     activation1.forward(dense1.output)
@@ -116,3 +116,8 @@ for iteration in range (1000):
         best_dense2_weights = dense2.weights.copy()
         best_dense2_biases = dense2.biases.copy ()
         lowest_loss = loss
+    else:
+        dense1.weights = best_dense1_weights.copy ()
+        dense1.biases = best_dense1_biases.copy()
+        dense2.weights = best_dense2_weights.copy()
+        dense2.biases = best_dense2_biases.copy ()
