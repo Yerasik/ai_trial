@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import nnfs
-from nnfs.datasets import vertical_data
+from nnfs.datasets import spiral_data
 import numpy as np
 
 # ReLU activation
@@ -74,7 +74,7 @@ class Loss_CategoricalCrossentropy(Loss):
 
 nnfs.init()
 # Create dataset
-X, y = vertical_data(samples=100, classes=3)
+X, y = spiral_data(samples=100, classes=3)
 # Create model
 dense1 = Layer_Dense (2, 3) # first dense layer, 2 inputs
 activation1 = Activation_ReLU()
@@ -93,7 +93,7 @@ best_dense2_biases = dense2.biases.copy()
 for iteration in range (10000):
     # Generate a new set of weights for iteration
     dense1.weights += 0.05 * np.random.randn (2, 3)
-    dense1.biases += 0.05 * np.random. rand(1, 3)
+    dense1.biases += 0.05 * np.random. randn(1, 3)
     dense2.weights += 0.05 * np.random.randn(3, 3)
     dense2.biases += 0.05 * np.random.randn(1, 3)
     # Perform a forward pass of the training data through this layer
