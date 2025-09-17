@@ -83,41 +83,25 @@ activation2 = Activation_Softmax()
 # Create loss function
 loss_function = Loss_CategoricalCrossentropy ()
 
-# Helper variables
-lowest_loss = 9999999 # some initial value
-best_dense1_weights = dense1.weights.copy()
-best_dense1_biases = dense1.biases.copy()
-best_dense2_weights = dense2.weights.copy ()
-best_dense2_biases = dense2.biases.copy()
+# Forward pass
+x = [1.0, -2.0, 3.0] # input values
+w = [-3.0, -1.0, 2.0] # weights
+b = 1.0 # bias
+# Multiplying inputs by weights
+xw0 = x[0] * w[0]
+xw1 = x[1] * w[1]
+xw2 = x[2] * w[2]
+print (xw0, xw1, xw2, b)
+# Adding weighted inputs and a bias
+z = xw0 + xw1 + xw2 + b
+print(z)
+# ReLU activation function
+y = max(z, 0)
+print (y)
 
-for iteration in range (10000):
-    # Generate a new set of weights for iteration
-    dense1.weights += 0.05 * np.random.randn (2, 3)
-    dense1.biases += 0.05 * np.random. randn(1, 3)
-    dense2.weights += 0.05 * np.random.randn(3, 3)
-    dense2.biases += 0.05 * np.random.randn(1, 3)
-    # Perform a forward pass of the training data through this layer
-    dense1.forward (X)
-    activation1.forward(dense1.output)
-    dense2.forward(activation1.output) 
-    activation2.forward(dense2.output)
-    # Perform a forward pass through activation function
-    # it takes the output of second dense layer here and returns loss
-    loss = loss_function.calculate (activation2.output, y)
-    # Calculate accuracy from output of activation2 and targets
-    # calculate values along first axis
-    predictions = np.argmax(activation2.output, axis=1)
-    accuracy = np.mean(predictions==y)
-    # If loss is smaller - print and save weights and biases aside
-    if loss < lowest_loss:
-        print( 'New set of weights found', 'iteraion:', iteration,'loss:', loss, 'acc:', accuracy)
-        best_dense1_weights = dense1.weights.copy ()
-        best_dense1_biases = dense1.biases.copy()
-        best_dense2_weights = dense2.weights.copy()
-        best_dense2_biases = dense2.biases.copy ()
-        lowest_loss = loss
-    else:
-        dense1.weights = best_dense1_weights.copy ()
-        dense1.biases = best_dense1_biases.copy()
-        dense2.weights = best_dense2_weights.copy()
-        dense2.biases = best_dense2_biases.copy ()
+# Backward pass
+# The derivative from the next layer
+dvalue = 1.0
+# Derivative of ReLU and the chain rule
+drelu_dz = dvalue * (1. if z > 0 else 0. )
+print(drelu_dz)
