@@ -123,8 +123,11 @@ dweights = np.dot(inputs.T, drelu)
 # we explained this in the chapter 4
 dbiases = np.sum(drelu, axis=0, keepdims=True)
 # Update parameters
+print(dweights)
+print(dbiases)
+
 weights += -0.001 * dweights 
-biases += -0.001 * biases
+biases += -0.001 * dbiases
 
 print(weights)
 print(biases)
