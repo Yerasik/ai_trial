@@ -9,6 +9,7 @@ class Activation_ReLU:
     def forward (self, inputs):
         # Calculate output values from input
         self.output = np.maximum (0, inputs)
+    
     # Backward pass
     def backward(self, dvalues):
         # Since we need to modify the original variable,
@@ -26,6 +27,7 @@ class Layer_Dense:
     def forward(self, inputs):
         self.output = np.dot(inputs, self.weights) + self.biases
         self.inputs = inputs
+
     # Backward pass
     def backward(self, dvalues):
         # Gradients on parameters
@@ -43,6 +45,25 @@ class Activation_Softmax:
         # Normalize them for each sample
         probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
         self.output = probabilities
+    # Softmax activation
+
+    # Backward pass
+    def backward(self, dvalues):
+        # Create uninitialized array
+        self.dinputs = np.empty_like(dvalues)
+        # Enumerate outputs and gradients
+        for index, (single_output, single_dvalues) in \ 
+                enumerate(zip (self.output, dvalues)):
+            # Flatten output array
+            single_output = single_output.reshape(-1, 1)
+            # Calculate Jacobian matrix of the output and
+            jacobian matrix = np.diagflat (single output) - \
+            np.dot (single_output, single_output.T)
+            # Calculate sample-wise gradient
+            # and add it to the array of sample gradients
+            self. dinputs [index] = np.dot (jacobian_matrix,
+            single_dvalues)
+
 # Common loss class
 class Loss:
     # Calculates the data and regularization losses
@@ -85,6 +106,20 @@ class Loss_CategoricalCrossentropy(Loss):
         # Losses
         negative_log_likelihoods = -np.log(correct_confidences)
         return negative_log_likelihoods
+    # Backward pass
+    def backward (self, dvalues, y_true):
+        # Number of samples
+        samples = len(dvalues)
+        # Number of labels in every sample
+        # We'll use the first sample to count them
+        labels = len (dvalues [0])
+        # If labels are sparse, turn them into one-hot vector
+        if len (y_true.shape) == 1:
+        y_true = np.eye (labels) [y_true]
+        # Calculate gradient
+        self.dinputs = -y_true / dvalues
+        # Normalize gradient
+        self.dinputs = self.dinputs / samples
 
 
 nnfs.init()
