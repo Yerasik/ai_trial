@@ -16,7 +16,7 @@ class Activation_ReLU:
         # let's make a copy of the values first
         self.dinputs = dvalues.copy()
         # Zero gradient where input values were negative
-        self.dinputs [self.inputs <= 0] = 0
+        self.dinputs [self.dinputs <= 0] = 0
 
 class Layer_Dense:
     # Layer initialization
@@ -158,49 +158,47 @@ class Activation_Softmax_Loss_CategoricalCrossentropy():
 nnfs.init()
 # Create dataset
 X, y = spiral_data(samples=100, classes=3)
+
 # Create model
 dense1 = Layer_Dense (2, 3) # first dense layer, 2 inputs
 activation1 = Activation_ReLU()
 dense2 = Layer_Dense (3, 3) # second dense layer, 3 inputs, 3 outputs
-activation2 = Activation_Softmax()
-# Create loss function
-loss_function = Loss_CategoricalCrossentropy ()
+# Create Softmax classifier's combined loss and activation
+loss_activation = Activation_Softmax_Loss_CategoricalCrossentropy ()
 
-# Helper variables
-lowest_loss = 9999999 # some initial value
-best_dense1_weights = dense1.weights.copy()
-best_dense1_biases = dense1.biases.copy()
-best_dense2_weights = dense2.weights.copy ()
-best_dense2_biases = dense2.biases.copy()
+# Perform a forward pass 
+dense1.forward (X)
+# Perform a forward pass throught an activation function
+activation1.forward(dense1.output)
+# Perfrom forward pass thorugh the second layer
+dense2.forward(activation1.output) 
 
-for iteration in range (10000):
-    # Generate a new set of weights for iteration
-    dense1.weights += 0.05 * np.random.randn (2, 3)
-    dense1.biases += 0.05 * np.random. randn(1, 3)
-    dense2.weights += 0.05 * np.random.randn(3, 3)
-    dense2.biases += 0.05 * np.random.randn(1, 3)
-    # Perform a forward pass of the training data through this layer
-    dense1.forward (X)
-    activation1.forward(dense1.output)
-    dense2.forward(activation1.output) 
-    activation2.forward(dense2.output)
-    # Perform a forward pass through activation function
-    # it takes the output of second dense layer here and returns loss
-    loss = loss_function.calculate (activation2.output, y)
-    # Calculate accuracy from output of activation2 and targets
-    # calculate values along first axis
-    predictions = np.argmax(activation2.output, axis=1)
-    accuracy = np.mean(predictions==y)
-    # If loss is smaller - print and save weights and biases aside
-    if loss < lowest_loss:
-        print( 'New set of weights found', 'iteraion:', iteration,'loss:', loss, 'acc:', accuracy)
-        best_dense1_weights = dense1.weights.copy ()
-        best_dense1_biases = dense1.biases.copy()
-        best_dense2_weights = dense2.weights.copy()
-        best_dense2_biases = dense2.biases.copy ()
-        lowest_loss = loss
-    else:
-        dense1.weights = best_dense1_weights.copy ()
-        dense1.biases = best_dense1_biases.copy()
-        dense2.weights = best_dense2_weights.copy()
-        dense2.biases = best_dense2_biases.copy ()
+# Calculate sample losses from output of activation2 (softmax activation)
+loss = loss_activation.forward(dense2.output, y)
+    
+# Print the output of first samples
+print(loss_activation.output[:5])
+# Print Loss value
+print ('loss:',loss)
+
+# Calculate accuracy from output of activation2 and targets
+# calculate values along first axis
+predictions = np.argmax(loss_activation.output, axis=1)
+if len(y.shape) == 2:
+    y = np.argmax(y, axis=1)
+accuracy = np.mean(predictions==y)
+
+# Print accuracy
+print('acc:',accuracy)
+
+# Backward pass
+loss_activation.backward(loss_activation.output, y) 
+dense2.backward(loss_activation.dinputs)
+activation1.backward(dense2.dinputs)
+dense1.backward (activation1.dinputs)
+
+# Print gradients
+print (dense1.dweights)
+print(dense1.dbiases)
+print (dense2.dweights)
+print (dense2.dbiases)
