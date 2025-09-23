@@ -142,12 +142,23 @@ class Activation_Softmax_Loss_CategoricalCrossentropy () :
 class Optimizer_SGD:
     # Initialize optimizer - set settings,
     # learning rate of 1. is default for this optimizer
-    def __init__(self, learning_rate=1.0):
+    def __init__(self, learning_rate=1., decay=0.):
         self.learning_rate = learning_rate
+        self.current_learning_rate = learning_rate
+        self.decay = decay
+        self.iterations = 0
+
+    # Call once before any parameter updates
+    def pre_update_params (self):
+        if self.decay:
+            self.current_learning_rate = self.learning_rate * (1. / (1. + self. decay * self.iterations))
     # Update parameters
     def update_params (self, layer):
-        layer.weights += -self.learning_rate * layer.dweights 
-        layer.biases += -self.learning_rate * layer.dbiases
+        layer.weights += -self.current_learning_rate * layer.dweights 
+        layer.biases += -self. current_learning_rate * layer.dbiases
+    # Call once after any parameter updates
+    def post_update_params (self):
+        self.iterations += 1
 
 # Create dataset
 X, y = spiral_data(samples=100, classes=3)
@@ -161,9 +172,9 @@ dense2 = Layer_Dense (64, 3)
 # Create Softmax classifier's combined loss and activation
 loss_activation = Activation_Softmax_Loss_CategoricalCrossentropy ()
 # Create optimizer
-optimizer = Optimizer_SGD()
+optimizer = Optimizer_SGD(decay=1e-3)
 # Train in 100p
-for epoch in range(30001):
+for epoch in range(10001):
     # Perform a forward pass of our training data through this layer
     dense1.forward (X)
     # Perform a forward pass through activation function
@@ -182,12 +193,14 @@ for epoch in range(30001):
         y = np.argmax (y, axis=1)
     accuracy = np.mean(predictions==y)
     if not epoch % 100:
-        print(f'epoch: {epoch}, ' + f'acc: {accuracy: 3f}, ' + f'loss: {loss: .3f}')
+        print(f'epoch: {epoch}, ' + f'acc: {accuracy: 3f}, ' + f'loss: {loss: .3f},' +f'lr: {optimizer.current_learning_rate} ' )
     # Backward pass
     loss_activation.backward(loss_activation.output, y)
     dense2. backward(loss_activation.dinputs)
     activation1.backward(dense2.dinputs)
     dense1. backward(activation1.dinputs)
     # Update weights and biases
+    optimizer.pre_update_params()
     optimizer.update_params(dense1)
     optimizer.update_params(dense2)
+    optimizer.post_update_params()
