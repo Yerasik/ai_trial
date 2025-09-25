@@ -34,8 +34,8 @@ class Layer_Dense:
             dL1[self.weights < 0 ] = - 1
             self.dweights += self.weight_regularizer_l1 * dL1
         # L2 on weights
-        if self.weight_regularizerl2 > 0 :
-            self.dweights += 2 * self.weight_regularizerl2 * self.weights
+        if self.weight_regularizer_l2 > 0 :
+            self.dweights += 2 * self.weight_regularizer_l2 * self.weights
         
         # L1 on biases
         if self.bias_regularizer_l1 > 0 :
@@ -43,8 +43,8 @@ class Layer_Dense:
             dL1[self.biases < 0 ] = - 1
             self.dbiases += self.bias_regularizer_l1 * dL1
         # L2 on biases
-        if self.bias_regularizerl2 > 0 :
-            self.dbiases += 2 * self.bias_regularizerl2 * self.biases
+        if self.bias_regularizer_l2 > 0 :
+            self.dbiases += 2 * self.bias_regularizer_l2 * self.biases
         
         # Gradient on values
         self.dinputs = np.dot(dvalues, self.weights.T)
@@ -388,10 +388,10 @@ for epoch in range(10001):
     dense2.forward(activation1.output)
     # Perform a forward pass through the activation/loss function
     # takes the output of second dense layer here and returns loss
-    data_loss = loss_function.forward(activation2.output, y)
+    data_loss = loss_activation.forward(dense2.output, y)
 
     # Calculate regularization penalty
-    regularization_loss = loss_function.regularization_loss(dense1) +loss_function.regularization_loss(dense2)
+    regularization_loss = loss_activation.loss.regularization_loss(dense1) +loss_activation.loss.regularization_loss(dense2)
     # Calculate overall loss
     loss = data_loss + regularization_loss
 
