@@ -80,6 +80,31 @@ class Loss:
         data_loss = np.mean(sample_losses)
         # Return loss
         return data_loss
+    # Regularization loss calculation
+    def regularization_loss ( self , layer ):
+        # 0 by default
+        regularization_loss = 0
+
+        # Calculate only if the layer parameter is greater than o
+        # L1 regulization
+        if layer.weight_regularizer_l1>0:
+            regularization_loss += layer.weight_regularizer_l1*np.sum(layer.weights)
+
+        # L2 regulization
+        if layer.weight_regularizer_l2>0:
+            regularization_loss += layer.weight_regularizer_l2*np.sum(layer.weights*layer.weights)
+        
+        # L1 regulization biases
+        if layer.bias_regularizer_l1>0:
+            regularization_loss += layer.bias_regularizer_l1*np.sum(layer.biases)
+
+        # L2 regulization biases
+        if layer.bias_regularizer_l2>0:
+            regularization_loss += layer.bias_regularizer_l2*np.sum(layer.biases*layer.biases)
+        
+        return regularization_loss
+
+        
 
 # Cross-entropy loss
 class Loss_CategoricalCrossentropy (Loss) :
@@ -343,6 +368,12 @@ for epoch in range(10001):
     # Perform a forward pass through the activation/loss function
     # takes the output of second dense layer here and returns loss
     loss = loss_activation.forward(dense2.output, y)
+    # Calculate loss from output of activation2 so softmax activation
+    data_loss = loss_function.forward(activation2.output, y)
+    # Calculate regularization penalty
+    regularization_loss = loss_function.regularization_loss(dense1) +loss_function.regularization_loss(dense2)
+    # Calculate overall loss
+    loss = data_loss + regularization_loss
     # Calculate accuracy from output of activation2 and targets
     # calculate values along first axis
     predictions = np.argmax(loss_activation.output, axis=1)
