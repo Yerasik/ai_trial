@@ -437,7 +437,7 @@ for epoch in range(10001):
     loss_activation.backward(loss_activation.output, y)
     dense2. backward(loss_activation.dinputs)
     dropout1.backward(dense2.dinputs)
-    activation1.backward(dense2.dinputs)
+    activation1.backward(dropout1.dinputs)
     dense1. backward(activation1.dinputs)
     # Update weights and biases
     optimizer.pre_update_params()
