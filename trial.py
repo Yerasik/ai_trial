@@ -69,6 +69,20 @@ class Layer_Dropout:
         # Gradient on values
         self.dinputs = dvalues * self.binary_mask
 
+# Sigmoid activation
+class Activation_Sigmoid:
+    # Forward pass
+    def forward (self, inputs):
+        # Save input and calculate/save output
+        # of the sigmoid function
+        self.inputs = inputs
+        self.output = 1 / (1 + np.exp(-inputs))
+    # Backward pass
+    def backward (self, dvalues):
+        # Derivative - calculates from output of the sigmoid function
+        self.dinputs = dvalues * (1 - self.output) * self.output
+
+
 # ReLU activation
 class Activation_ReLU:
     # Forward pass
