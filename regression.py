@@ -9,7 +9,7 @@ class Layer_Dense:
     # Layer initialization
     def __init__(self, n_inputs, n_neurons,weight_regularizer_l1=0, weight_regularizer_l2=0, bias_regularizer_l1=0, bias_regularizer_l2=0):
         # Initialize weights and biases
-        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
+        self.weights = 0.1 * np.random.randn(n_inputs, n_neurons)
         self.biases = np.zeros( (1, n_neurons))
         # Set regularization strength
         self.weight_regularizer_l1 = weight_regularizer_l1
@@ -214,7 +214,7 @@ activation3= Activation_Linear()
 # Create loss function
 loss_function = Loss_MeanSquaredError ()
 # Create optimizer
-optimizer = Optimizer_Adam(learning_rate = 0.05 , decay = 1e-3)
+optimizer = Optimizer_Adam(learning_rate = 0.005 , decay = 1e-3)
 # Accuracy precision for accuracy calculation
 # There are no really accuracy factor for regression problem,
 # but we can simulate/approximate it. We'll calculate it by checking
