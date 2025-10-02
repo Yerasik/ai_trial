@@ -3,6 +3,14 @@ import nnfs
 from nnfs.datasets import sine_data
 import numpy as np 
 
+# Model class
+class Model:
+    def __init__(self):
+        # Create a list of network objects
+        self.layers = []
+    # Add objects to the model
+    def add (self, Layer):
+        self.layers.append (layer)
 
 # Dense layer
 class Layer_Dense:
@@ -204,13 +212,10 @@ class Optimizer_Adam:
 
 # Create dataset
 X, y = sine_data()
-# Create Dense layer with 1 input feature and 64 output values
-dense1 = Layer_Dense (1, 64)
-activation1 = Activation_ReLU()
-dense2 = Layer_Dense (64, 64)
-activation2 = Activation_ReLU()
-dense3 = Layer_Dense (64, 1)
-activation3= Activation_Linear()
+# Instantiate the model
+model = Model()
+
+
 # Create loss function
 loss_function = Loss_MeanSquaredError ()
 # Create optimizer
