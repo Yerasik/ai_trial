@@ -9,8 +9,26 @@ class Model:
         # Create a list of network objects
         self.layers = []
     # Add objects to the model
-    def add (self, Layer):
+    def add (self, layer):
         self.layers.append (layer)
+    
+    # Set loss and optimizer
+    def set(self, *, loss, optimizer):
+        self.loss = loss
+        self.optimizer = optimizer
+
+    # Train the model
+    def train ( self , X , y ,*, epochs = 1 , print_every = 1 ):
+        # Main training loop
+        for epoch in range ( 1 , epochs + 1 ):
+            # Temporary
+            pass
+# Input "layer"
+class Layer_Input :
+    # Forward pass
+    def forward ( self , inputs ):
+        self.output = inputs
+
 
 # Dense layer
 class Layer_Dense:
@@ -214,21 +232,20 @@ class Optimizer_Adam:
 X, y = sine_data()
 # Instantiate the model
 model = Model()
+# Add layers
+model.add(Layer_Dense (1, 64)) 
+model.add(Activation_ReLU()) 
+model.add(Layer_Dense (64, 64)) 
+model.add(Activation_ReLU())
+model.add(Layer_Dense (64, 1)) 
+model.add(Activation_Linear())
 
+# Set loss and optimizer objects
+model.set(loss = Loss_MeanSquaredError(),optimizer = Optimizer_Adam( learning_rate = 0.005 , decay = 1e-3 ),)
 
-# Create loss function
-loss_function = Loss_MeanSquaredError ()
-# Create optimizer
-optimizer = Optimizer_Adam(learning_rate = 0.005 , decay = 1e-3)
-# Accuracy precision for accuracy calculation
-# There are no really accuracy factor for regression problem,
-# but we can simulate/approximate it. We'll calculate it by checking
-# how many values have a difference to their ground truth equivalent
-# less than given precision
-# We'll calculate this precision as a fraction of standard deviation
-# of al the ground truth values
 accuracy_precision = np.std(y) / 250
 
+model.train(X, y, epochs = 10000 , print_every = 100 )
 # Train in loop
 for epoch in range ( 10001 ):
     dense1.forward(X)
