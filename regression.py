@@ -284,6 +284,33 @@ class Loss_MeanAbsoluteError (Loss): # L1 loss
         # Normalize gradient
         self.dinputs = self.dinputs / samples
 
+# Common accuracy class
+class Accuracy:
+    # Calculates an accuracy
+    # given predictions and ground truth values
+    def calculate (self, predictions, y):
+        # Get comparison results
+        comparisons = self.compare (predictions, y)
+        # Calculate an accuracy
+        accuracy = np.mean(comparisons)
+        # Return accuracy
+        return accuracy
+
+# Accuracy calculation for regression model
+class Accuracy_Regression (Accuracy):
+    def __init__(self):
+        # Create precision property
+        self.precision = None
+        # Calculates precision value
+        # based on passed in ground truth
+    def init(self, y, reinit=False):
+        if self.precision is None or reinit:
+            self.precision = np.sta(y) / 250
+
+    # Compares predictions to the ground truth values
+    def compare (self, predictions, y) :
+        return np.absolute(predictions - y) < self.precision
+
 class Optimizer_Adam:
     # Initialize optimizer - set settings,
     # learning rate of 1. is default for this optimizer
