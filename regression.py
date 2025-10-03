@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import nnfs
 from nnfs.datasets import sine_data
+from nnfs.datasets import spiral_data
 import numpy as np 
 
 # Model class
@@ -55,7 +56,7 @@ class Model:
         
         
     #Train the model
-    def train ( self , X , y ,*, epochs = 1 , print_every = 1 ):
+    def train ( self , X , y , * , epochs = 1 , print_every = 1, validation_data = None  ):
         # Initialize accuracy object
         self.accuracy.init(y)
 
@@ -65,7 +66,7 @@ class Model:
             output = self.forward(X)
 
             # Calculate loss
-            data_loss, regularization_loss = self.loss.calculate(output, y)
+            data_loss, regularization_loss = self.loss.calculate(output, y, include_regularization = True )
             loss = data_loss + regularization_loss
 
             # Get predictions and calculate an accuracy
@@ -83,6 +84,20 @@ class Model:
             # Print a summary
             if not epoch % print_every:
                 print(f'epoch: {epoch}, ' + f'acc: {accuracy: 3f}, ' + f'loss: {loss:.3f} (' + f'data_loss: {data_loss:.3f}, ' + f'reg_loss: {regularization_loss:.3f}), ' + f'Ir: {self.optimizer.current_learning_rate}')
+        
+        # If there is the validation data
+        if validation_data is not None:
+            # For better readability
+            X_val, y_val = validation_data
+            # Perform the forward pass
+            output = self.forward (X_val)
+            # Calculate the loss
+            loss = self.loss.calculate(output, y_val)
+            # Get predictions and calculate an accuracy
+            predictions = self.output_layer_activation.predictions(output)
+            accuracy = self.accuracy.calculate(predictions, y_val)
+            # Print a summary
+            print(f'validation, ' + f'acc: {accuracy: 3f}, ' + f'loss: {loss: .3f}')
     
     # Performs forward pass
     def forward (self, X):
@@ -275,13 +290,44 @@ class Loss:
         self.trainable_layers = trainable_layers
     # Calculates the data and regularization losses
     # given model output and ground truth values
-    def calculate (self, output, y) :
+    def calculate (self, output, y, *, include_regularization = False) :
         # Calculate sample losses
         sample_losses = self.forward (output, y)
         # Calculate mean loss
         data_loss = np.mean(sample_losses)
+        # If just data loss - return it
+        if not include_regularization:
+            return data_loss
+
         # Return loss
         return data_loss, self.regularization_loss()
+
+# Binary cross-entropy loss
+class Loss_BinaryCrossentropy (Loss) :
+    # Forward pass
+    def forward(self, y_pred, y_true):
+        # Clip data to prevent division by 0
+        # Clip both sides to not drag mean towards any value
+        y_pred_clipped = np.clip(y_pred, 1e-7, 1 - 1e-7)
+        # Calculate sample-wise loss
+        sample_losses = -(y_true * np.log(y_pred_clipped) + (1 - y_true) * np.log(1 - y_pred_clipped))
+        sample_losses = np.mean (sample_losses, axis=-1)
+        # Return losses
+        return sample_losses
+    # Backward pass
+    def backward (self, dvalues, y_true):
+        # Number of samples
+        samples = len(dvalues)
+        # Number of outputs in every sample
+        # We'll use the first sample to count them
+        outputs = len(dvalues [0])
+        # Clip data to prevent division by o
+        # Clip both sides to not drag mean towards any value
+        clipped_dvalues = np.clip(dvalues, 1e-7, 1 - 1e-7)
+        # Calculate gradient
+        self.dinputs = -(y_true / clipped_dvalues -(1 - y_true) / (1 - clipped_dvalues)) / outputs
+        # Normalize gradient
+        self.dinputs = self.dinputs / samples
 
 # Mean Squared Error loss
 class Loss_MeanSquaredError (Loss): # L2 loss
@@ -333,6 +379,17 @@ class Accuracy:
         accuracy = np.mean(comparisons)
         # Return accuracy
         return accuracy
+
+# Accuracy calculation for classification model
+class Accuracy_Categorical(Accuracy):
+    # No initialization is needed
+    def init (self, y) :
+        pass
+    # Compares predictions to the ground truth values
+    def compare (self, predictions, y):
+        if len(y.shape) == 2:
+            y = np.argmax(y, axis=1)
+        return predictions == y
 
 # Accuracy calculation for regression model
 class Accuracy_Regression (Accuracy):
@@ -400,23 +457,30 @@ class Optimizer_Adam:
 
 
 # Create dataset
-X, y = sine_data()
+X, y = spiral_data( samples = 100 , classes = 2 )
+X_test, y_test = spiral_data( samples = 100 , classes = 2 )
+
+# Reshape labels to be a list of lists
+# Inner list contains one output (either 0 or 1)|
+# per each output neuron, 1 in this case
+y = y.reshape (-1,1)
+y_test = y_test.reshape (-1,1)
+
 # Instantiate the model
 model = Model()
 # Add layers
-model.add(Layer_Dense (1, 64)) 
-model.add(Activation_ReLU()) 
-model.add(Layer_Dense (64, 64)) 
-model.add(Activation_ReLU())
-model.add(Layer_Dense (64, 1)) 
-model.add(Activation_Linear())
+# Add layers
+model.add (Layer_Dense(2, 64, weight_regularizer_l2=5e-4,bias_regularizer_l2=5e-4))
+model.add (Activation_ReLU()) 
+model.add (Layer_Dense (64, 1)) 
+model.add (Activation_Sigmoid())
 
 # Set loss and optimizer objects
-model.set(loss = Loss_MeanSquaredError(),
-optimizer = Optimizer_Adam( learning_rate = 0.005 , decay = 1e-3 ), 
-accuracy = Accuracy_Regression())
+model.set(loss =  Loss_BinaryCrossentropy(),
+optimizer = Optimizer_Adam( decay = 5e-7 ), 
+accuracy = Accuracy_Categorical())
 
 # Finalize the model
 model.finalize()
 # Train the model
-model.train(X, y, epochs = 10000 , print_every = 100 )
+model.train(X, y, validation_data = (X_test, y_test), epochs = 10000 , print_every = 100 )
