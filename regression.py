@@ -140,6 +140,9 @@ class Activation_ReLU:
         self.dinputs = dvalues.copy()
         # Zero gradient where input values were negative
         self.dinputs[self.inputs <= 0] = 0
+    # Calculate predictions for outputs
+    def predictions ( self , outputs ):
+        return outputs
 
 # Softmax activation
 class Activation_Softmax:
@@ -165,8 +168,25 @@ class Activation_Softmax:
             # Calculate sample-wise gradient
             # and add it to the array of sample gradients
             self.dinputs[index] = np.dot (jacobian_matrix,single_dvalues)
+    def predictions ( self , outputs ):
+        return np.argmax(outputs, axis = 1 )
 
-            
+# Sigmoid activation
+class Activation_Sigmoid:
+    # Forward pass
+    def forward (self, inputs):
+        # Save input and calculate/save output
+        # of the sigmoid function
+        self.inputs = inputs
+        self.output = 1 / (1 + np.exp(-inputs))
+    # Backward pass
+    def backward (self, dvalues):
+        # Derivative - calculates from output of the sigmoid function
+        self.dinputs = dvalues * (1 - self.output) * self.output
+    def predictions ( self , outputs ):
+        return (outputs > 0.5 ) * 1
+
+
 # Linear activation
 class Activation_Linear:
     # Forward pass
@@ -178,6 +198,10 @@ class Activation_Linear:
     def backward (self, dvalues):
         # derivative is 1, 1 * dvalues = dvalues - the chain rule
         self.dinputs = dvalues.copy()
+
+    # Calculate predictions for outputs
+    def predictions ( self , outputs ):
+        return outputs
 
 
 # Common loss class
