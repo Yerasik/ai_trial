@@ -156,6 +156,9 @@ class Activation_Linear:
 
 # Common loss class
 class Loss:
+    # Set/remember trainable layers
+    def remember_trainable_layers (self, trainable_layers):
+        self.trainable_layers = trainable_layers
     # Calculates the data and regularization losses
     # given model output and ground truth values
     def calculate (self, output, y) :
@@ -164,28 +167,31 @@ class Loss:
         # Calculate mean loss
         data_loss = np.mean(sample_losses)
         # Return loss
-        return data_loss
+        return data_loss, self.regularization_loss()
     # Regularization loss calculation
     def regularization_loss ( self , layer ):
         # 0 by default
         regularization_loss = 0
 
-        # Calculate only if the layer parameter is greater than o
-        # L1 regulization
-        if layer.weight_regularizer_l1>0:
-            regularization_loss += layer.weight_regularizer_l1 * np.sum(np.abs(layer.weights))
-
-        # L2 regulization
-        if layer.weight_regularizer_l2>0:
-            regularization_loss += layer.weight_regularizer_l2*np.sum(layer.weights*layer.weights)
         
-        # L1 regulization biases
-        if layer.bias_regularizer_l1>0:
-            regularization_loss += layer.bias_regularizer_l1*np.sum(np.abs(layer.biases))
+        for layer in trainable_layers:
 
-        # L2 regulization biases
-        if layer.bias_regularizer_l2>0:
-            regularization_loss += layer.bias_regularizer_l2*np.sum(layer.biases*layer.biases)
+            # Calculate only if the layer parameter is greater than o
+            # L1 regulization
+            if layer.weight_regularizer_l1>0:
+                regularization_loss += layer.weight_regularizer_l1 * np.sum(np.abs(layer.weights))
+
+            # L2 regulization
+            if layer.weight_regularizer_l2>0:
+                regularization_loss += layer.weight_regularizer_l2*np.sum(layer.weights*layer.weights)
+            
+            # L1 regulization biases
+            if layer.bias_regularizer_l1>0:
+                regularization_loss += layer.bias_regularizer_l1*np.sum(np.abs(layer.biases))
+
+            # L2 regulization biases
+            if layer.bias_regularizer_l2>0:
+                regularization_loss += layer.bias_regularizer_l2*np.sum(layer.biases*layer.biases)
         
         return regularization_loss
 
