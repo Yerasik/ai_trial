@@ -13,9 +13,10 @@ class Model:
         self.layers.append (layer)
     
     # Set loss and optimizer
-    def set(self, *, loss, optimizer):
+    def set(self, *, loss, optimizer, accuracy):
         self.loss = loss
         self.optimizer = optimizer
+        self.accuracy = accuracy
 
     # Finalize the model
     def finalize (self):
@@ -49,15 +50,27 @@ class Model:
             if hasattr (self.layers[i],'weights' ):
                 self.trainable_layers.append(self.layers[i])
         
+        
     #Train the model
     def train ( self , X , y ,*, epochs = 1 , print_every = 1 ):
+        # Initialize accuracy object
+        self.accuracy.init(y)
+
         # Main training loop
         for epoch in range ( 1 , epochs + 1 ):
             # Perform the forward pass
             output = self.forward(X)
-            # Temporary
-            print (output)
-            exit()
+
+            # Calculate loss
+            data_loss, regularization_loss = self.loss.calculate(output, y)
+            loss = data_loss + regularization_loss
+
+            # Get predictions and calculate an accuracy
+            predictions = self.output_layer_activation.predictions(output)
+            accuracy = self.accuracy.calculate(predictions, y)
+
+            # Perform backward pass
+            self.backward(output, y)
     
     # Performs forward pass
     def forward (self, X):
@@ -72,6 +85,17 @@ class Model:
         # "layer" is now the last object from the list,
         # return its output
         return layer.output
+    
+    # Performs backward pass
+    def backward (self, output, y) :
+        # First call backward method on the loss
+        # this will set dinputs property that the last
+        # layer will try to access shortly
+        self.loss.backward(output,y)
+        # Call backward method going through all the objects
+        # in reversed order passing dinputs as a parameter
+        for layer in reversed (self.layers):
+            layer.backward(layer.next.dinputs)
 
 # Input "layer"
 class Layer_Input :
@@ -206,18 +230,6 @@ class Activation_Linear:
 
 # Common loss class
 class Loss:
-    # Set/remember trainable layers
-    def remember_trainable_layers (self, trainable_layers):
-        self.trainable_layers = trainable_layers
-    # Calculates the data and regularization losses
-    # given model output and ground truth values
-    def calculate (self, output, y) :
-        # Calculate sample losses
-        sample_losses = self.forward (output, y)
-        # Calculate mean loss
-        data_loss = np.mean(sample_losses)
-        # Return loss
-        return data_loss, self.regularization_loss()
     # Regularization loss calculation
     def regularization_loss ( self , layer ):
         # 0 by default
@@ -244,6 +256,20 @@ class Loss:
                 regularization_loss += layer.bias_regularizer_l2*np.sum(layer.biases*layer.biases)
         
         return regularization_loss
+
+    # Set/remember trainable layers
+    def remember_trainable_layers (self, trainable_layers):
+        self.trainable_layers = trainable_layers
+    
+    # Calculates the data and regularization losses
+    # given model output and ground truth values
+    def calculate (self, output, y) :
+        # Calculate sample losses
+        sample_losses = self.forward (output, y)
+        # Calculate mean loss
+        data_loss = np.mean(sample_losses)
+        # Return loss
+        return data_loss, self.regularization_loss()
 
 # Mean Squared Error loss
 class Loss_MeanSquaredError (Loss): # L2 loss
