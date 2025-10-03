@@ -141,7 +141,32 @@ class Activation_ReLU:
         # Zero gradient where input values were negative
         self.dinputs[self.inputs <= 0] = 0
 
+# Softmax activation
+class Activation_Softmax:
+    # Forward pass
+    def forward (self, inputs):
+        # Remember input values
+        self.inputs = inputs
+        # Get unnormalized probabilities
+        exp_values = np.exp(inputs - np.max(inputs, axis=1,keepdims=True))
+        # Normalize them for each sample
+        probabilities = exp_values / np.sum(exp_values, axis=1,keepdims=True)
+        self.output = probabilities
+    # Backward pass
+    def backward (self, dvalues) :
+        # Create uninitialized array
+        self.dinputs = np.empty_like(dvalues)
+        # Enumerate outputs and gradients
+        for index, (single_output, single_dvalues) in enumerate(zip(self.output, dvalues)):
+            # Flatten output array
+            single_output = single_output.reshape(-1, 1)
+            # Calculate Jacobian matrix of the output and
+            jacobian_matrix = np.diagflat(single_output) - np.dot(single_output, single_output.T)
+            # Calculate sample-wise gradient
+            # and add it to the array of sample gradients
+            self.dinputs[index] = np.dot (jacobian_matrix,single_dvalues)
 
+            
 # Linear activation
 class Activation_Linear:
     # Forward pass
@@ -153,6 +178,7 @@ class Activation_Linear:
     def backward (self, dvalues):
         # derivative is 1, 1 * dvalues = dvalues - the chain rule
         self.dinputs = dvalues.copy()
+
 
 # Common loss class
 class Loss:
