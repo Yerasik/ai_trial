@@ -49,6 +49,9 @@ class Model:
             # checking for weights is enough
             if hasattr (self.layers[i],'weights' ):
                 self.trainable_layers.append(self.layers[i])
+            
+        # Update loss object with trainable layers
+        self.loss.remember_trainable_layers(self.trainable_layers)
         
         
     #Train the model
@@ -71,6 +74,15 @@ class Model:
 
             # Perform backward pass
             self.backward(output, y)
+
+            # Optimize (update parameters)
+            self.optimizer.pre_update_params()
+            for layer in self.trainable_layers:
+                self.optimizer.update_params(layer)
+            self.optimizer.post_update_params()
+            # Print a summary
+            if not epoch % print_every:
+                print(f'epoch: {epoch}, ' + f'acc: {accuracy: 3f}, ' + f'loss: {loss:.3f} (' + f'data_loss: {data_loss:.3f}, ' + f'reg_loss: {regularization_loss:.3f}), ' + f'Ir: {self.optimizer.current_learning_rate}')
     
     # Performs forward pass
     def forward (self, X):
@@ -230,13 +242,14 @@ class Activation_Linear:
 
 # Common loss class
 class Loss:
+
     # Regularization loss calculation
-    def regularization_loss ( self , layer ):
+    def regularization_loss ( self ):
         # 0 by default
         regularization_loss = 0
 
         
-        for layer in trainable_layers:
+        for layer in self.trainable_layers:
 
             # Calculate only if the layer parameter is greater than o
             # L1 regulization
@@ -260,7 +273,6 @@ class Loss:
     # Set/remember trainable layers
     def remember_trainable_layers (self, trainable_layers):
         self.trainable_layers = trainable_layers
-    
     # Calculates the data and regularization losses
     # given model output and ground truth values
     def calculate (self, output, y) :
@@ -331,7 +343,7 @@ class Accuracy_Regression (Accuracy):
         # based on passed in ground truth
     def init(self, y, reinit=False):
         if self.precision is None or reinit:
-            self.precision = np.sta(y) / 250
+            self.precision = np.std(y) / 250
 
     # Compares predictions to the ground truth values
     def compare (self, predictions, y) :
@@ -400,7 +412,9 @@ model.add(Layer_Dense (64, 1))
 model.add(Activation_Linear())
 
 # Set loss and optimizer objects
-model.set(loss = Loss_MeanSquaredError(),optimizer = Optimizer_Adam( learning_rate = 0.005 , decay = 1e-3 ),)
+model.set(loss = Loss_MeanSquaredError(),
+optimizer = Optimizer_Adam( learning_rate = 0.005 , decay = 1e-3 ), 
+accuracy = Accuracy_Regression())
 
 # Finalize the model
 model.finalize()
