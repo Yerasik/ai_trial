@@ -1,6 +1,10 @@
-import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+import cv2
+import os
+import nnfs
+
+nnfs.init()
+
 # Loads a MNIST dataset
 def load_mnist_dataset(dataset, path):
   # Scan all the directories and create a list of labels
@@ -27,7 +31,7 @@ def create_data_mnist (path):
   X, y = load_mnist_dataset('train', path)
   X_test, y_test = load_mnist_dataset('test', path)
   # And return all the data
-  return x, y, x_test, y_test
+  return X, y, X_test, y_test
 
 # Create dataset
 X, y, X_test, y_test = create_data_mnist('fashion_mnist_images')
@@ -38,3 +42,6 @@ X_test = (X_test.astype(np.float32) - 127.5 ) / 127.5
 # Reshape to vectors
 X = X.reshape(X.shape[ 0 ],-1 )
 X_test = X_test.reshape(X_test.shape[ 0 ],-1 )
+keys = np.array( range (X.shape[ 0 ]))
+np.random.shuffle(keys)
+print (keys[: 10 ])
